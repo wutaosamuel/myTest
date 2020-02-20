@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<title>BackConsole</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="./CSS/w3.css">
+<link rel="stylesheet" href="./CSS/Roboto.css">
+<link rel="stylesheet" href="./CSS/Montserrat.css">
+<link rel="stylesheet" href="./CSS/font-awesome.min.css">
+<style>
+.w3-sidebar a {font-family: "Roboto", sans-serif}
+body,h1,h2,h3,h4,h5,h6,.w3-wide {font-family: "Montserrat", sans-serif;}
+</style>
+<body class="w3-content" style="max-width:1200px">
+
+<!-- !PAGE CONTENT! -->
+<div class="w3-main w3-layout-middle">
+
+  <!-- add empty-->
+  <div class="w3-container w3-padding-32">
+  </div>
+  <!-- Command bar -->
+  <div class="w3-container w3-padding-32 w3-light-grey w3-margin w3-round-xlarge w3-card">
+    <form class="w3-container" method="POST">
+    <div class="w3-container w3-green">
+      <h1>Login</h1>
+    </div>
+      <p>
+        <label>Password:</label>
+        <input class="w3-input w3-border" id="passwordID" type="password" placeholder="Password" style="width:100%">
+      </p>
+      <p id="passwordRst"></p>
+      <button type="button" onclick="sendPassEn()" class="w3-button w3-red w3-margin-bottom w3-right">Confirm</button>
+    </form>
+  </div>
+
+<script>
+// encode 
+function sendPassEn(){
+  var pass = document.getElementById("passwordID").value
+  var passEn = window.btoa(pass)
+  var form = document.createElement("form")
+  form.setAttribute("method", "POST")
+  var input = document.createElement("input")
+  input.setAttribute("type", "hidden")
+  input.setAttribute("name", "password")
+  input.setAttribute("id", "passwordTmp")
+  input.setAttribute("value", passEn)
+  form.appendChild(input)
+  document.body.appendChild(form)
+  form.submit()
+  //document.getElementById("passwordRst").innerHTML = input.value
+  document.body.removeChild(form)
+}
+
+</script>
+  
+</body>
+</html>
