@@ -11,11 +11,13 @@ import (
 
 func main() {
 	fmt.Println("http start")
+	testGen()
 	// set static assert
-	//fs := http.FileServer(http.Dir("./html"))
 	http.Handle("/CSS/", http.StripPrefix("/CSS/", http.FileServer(http.Dir("./html/CSS"))))
-	//http.Handle("/html/", http.StripPrefix("/html/", http.FileServer(http.Dir("./html"))))
 	http.HandleFunc("/", html.HandleIndex)
+	http.HandleFunc("/shell.html", html.HandleShell)
+	http.HandleFunc("/jobs.html", html.HandleJobs)
+	http.HandleFunc("/logs.html", html.HandleLogs)
 	fmt.Println("listening...")
 	err := http.ListenAndServe(":9090", nil)
 	if err != nil {
