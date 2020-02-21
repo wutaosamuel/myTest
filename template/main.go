@@ -11,9 +11,9 @@ import (
 
 func main() {
 	fmt.Println("http start")
-	testGen()
 	// set static assert
 	http.Handle("/CSS/", http.StripPrefix("/CSS/", http.FileServer(http.Dir("./html/CSS"))))
+	// hand func
 	http.HandleFunc("/", html.HandleIndex)
 	http.HandleFunc("/shell.html", html.HandleShell)
 	http.HandleFunc("/jobs.html", html.HandleJobs)

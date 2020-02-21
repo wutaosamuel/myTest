@@ -5,9 +5,8 @@ package html
  */
 
 import (
+	"encoding/base64"
 	"fmt"
-	//"io"
-	//"io/ioutil"
 	"net/http"
 	"strings"
 )
@@ -22,32 +21,33 @@ func HandleIndex(w http.ResponseWriter, req *http.Request) {
 	PrintHTMLInfo(req)
 
 	// First time access server
-	// GET / URL == '/' for index page
+	// GET for responsing index.html
 	if req.Method == "GET" {
 		fmt.Println("handle index method get")
-		//indexHTML, _ := ioutil.ReadFile("html/index.html")
-		//fmt.Fprintf(w, string(indexHTML))
 		http.ServeFile(w, req, "html/index.html")
 	}
 
 	// Form will require by POST
-	for i, value := range req.Form {
-		fmt.Println("key: ", i)
-		fmt.Println("value: ", strings.Join(value, ""))
-	}
 	if req.Method == "POST" {
-		// FIXME: potential fail
-		fmt.Println(req.Form["password"])
+		password, _ := base64.StdEncoding.DecodeString(FormToString(req, "password"))
+		fmt.Println(FormToString(req, "password"))
+		fmt.Println(string(password))
+		// TODO:
+		// Read Config and allow to sign in
+		// Cookie for Auth
 		http.ServeFile(w, req, "html/shell.html")
 	}
 }
 
-// TODO: base64 decode
-
 // PrintHTMLInfo infomation
-func PrintHTMLInfo(req *http.Request){
+func PrintHTMLInfo(req *http.Request) {
 	fmt.Println(req.Form)
 	fmt.Println("path: ", req.URL.Path)
 	fmt.Println("scheme: ", req.URL.Scheme)
 	fmt.Println("method: ", req.Method)
+}
+
+// FormToString to string
+func FormToString(req *http.Request, attribute string) string {
+	return strings.Join(req.Form[attribute], "")
 }
