@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"time"
+	"log"
+	"os"
 
 	"./html"
 	"./job"
@@ -13,7 +15,51 @@ import (
 
 func main() {
 	fmt.Println("test start")
-	testExec()
+	//testExec()
+	var l *log.Logger
+	logName := "test.log"
+	WriteLog(l, logName, "log test")
+	fn := func(g *log.Logger) {
+		g.Println("test func 1")
+		g.Println("test func 2")
+	}
+	WriteLogFunc(l, logName, fn)
+}
+
+// WriteLog write into log
+// Println only
+func WriteLog(logger *log.Logger, logName, logInfo string) {
+	// open log file
+	f, err := os.OpenFile(
+		logName,
+		os.O_RDWR|os.O_CREATE|os.O_APPEND,
+		0666)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+	logger = log.New(f, "", log.Ldate | log.Ltime | log.LUTC)
+	logger.Println(logInfo)
+	return
+}
+
+// LogActCallback is
+type LogActCallback func(*log.Logger)
+
+// WriteLogFunc write into log by func
+func WriteLogFunc(logger *log.Logger, logName string, logFunc LogActCallback) {
+	// open log file
+	f, err := os.OpenFile(
+		logName,
+		os.O_RDWR|os.O_CREATE|os.O_APPEND,
+		0666)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+	logger = log.New(f, "", log.Ldate|log.Ltime|log.LUTC)
+	logFunc(logger)
+	return
 }
 
 // testExec test exec
@@ -29,6 +75,7 @@ func testExec() {
 	//testExec.DoExec()
 	time.Sleep(time.Duration(122) * time.Second)
 	testExec.StopCron()
+	log.Println("In Log done")
 	fmt.Println("Cron Stop")
 
 	f, err := ioutil.ReadFile(logName)
