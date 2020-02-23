@@ -24,6 +24,8 @@ func main() {
 		g.Println("test func 2")
 	}
 	WriteLogFunc(l, logName, fn)
+	read, _ := ReadLog(logName)
+	fmt.Println(read)
 }
 
 // WriteLog write into log
@@ -60,6 +62,15 @@ func WriteLogFunc(logger *log.Logger, logName string, logFunc LogActCallback) {
 	logger = log.New(f, "", log.Ldate|log.Ltime|log.LUTC)
 	logFunc(logger)
 	return
+}
+
+// ReadLog read log
+func ReadLog(logName string) (string, error) {
+	f, err := ioutil.ReadFile(logName)
+	if err != nil {
+		return "", err
+	}
+	return string(f), nil
 }
 
 // testExec test exec
