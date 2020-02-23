@@ -25,6 +25,7 @@ func HandleIndex(w http.ResponseWriter, req *http.Request) {
 	if req.Method == "GET" {
 		fmt.Println("handle index method get")
 		http.ServeFile(w, req, "html/index.html")
+		// http.Redirect(w,r,"/login",http.StatusUnauthorized)
 	}
 
 	// Form will require by POST
@@ -35,7 +36,7 @@ func HandleIndex(w http.ResponseWriter, req *http.Request) {
 		// TODO:
 		// Read Config and allow to sign in
 		// Cookie for Auth
-		http.ServeFile(w, req, "html/shell.html")
+		http.Redirect(w, req, "/shell.html", http.StatusFound)
 	}
 }
 
