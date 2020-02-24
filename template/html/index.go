@@ -36,7 +36,7 @@ func HandleIndex(w http.ResponseWriter, req *http.Request) {
 		// TODO:
 		// Read Config and allow to sign in
 		// Cookie for Auth
-		http.Redirect(w, req, "/shell.html", http.StatusFound)
+		http.Redirect(w, req, "/shell.html", 307)
 	}
 }
 
