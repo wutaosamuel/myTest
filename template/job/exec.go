@@ -2,9 +2,12 @@ package job
 
 import (
 	"log"
+	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
+	"sync"
 
 	cron "github.com/robfig/cron"
 	uuid "github.com/satori/go.uuid"
@@ -12,31 +15,75 @@ import (
 
 // TODO: recover jobs
 // TODO: cycle job is not work on done
-// TODO: set log path
 
 // Exec type for do exec
 type Exec struct {
 	Name    string // the name of jobs
 	nameID  string // the unique ID for each job
 	Command string // command required to execute
+	LogName string // log path/name.log
 
-	// TODO: mux lock for writing in log
+	*sync.RWMutex             // Read & write lock
+	Logger        *log.Logger // logger for exec
+
 	Cron *cron.Cron // does job need to schedule
-	time string     // schedule time of job
-	done bool       // does it finish
+	Time string     // schedule time of job
 }
 
 /////////////////// Setter&&Getter ///////////////////
 
-// NewExec crete a new Exec struct
+// NewExecS create a new Exec struct
+// Init required after create a new Exec
+func NewExecS() *Exec {
+	return &Exec{
+		"",
+		"",
+		"",
+		"",
+		&sync.RWMutex{},
+		&log.Logger{},
+		cron.New(),
+		""}
+}
+
+// NewExec create a new Exec struct
 func NewExec() *Exec {
 	uuid := uuid.Must(uuid.NewV4()).String()
-	return &Exec{nameID: uuid}
+	return &Exec{
+		uuid,
+		"",
+		"",
+		"",
+		&sync.RWMutex{},
+		&log.Logger{},
+		cron.New(),
+		""}
+}
+
+// Init init exec
+func (e *Exec) Init() error {
+	e.nameID = uuid.Must(uuid.NewV4()).String()
+	// set log path
+	e.SetLogName()
+	return nil
 }
 
 // SetCronTime by cron like format schedule
 func (e *Exec) SetCronTime(m string, h string, d string, mon string, w string) {
-	e.time = m + " " + h + " " + d + " " + mon + " " + w
+	e.Time = m + " " + h + " " + d + " " + mon + " " + w
+}
+
+// SetLogName set log path
+func (e *Exec) SetLogName() {
+	if len(e.LogName) < 4 {
+		e.LogName = filepath.Join(e.LogName, e.CreateLogName())
+		return
+	}
+	if e.LogName[len(e.LogName)-4:] != ".log" {
+		e.LogName = filepath.Join(e.LogName, e.CreateLogName())
+		return
+	}
+	return
 }
 
 // GetNameID get uuid for job
@@ -45,22 +92,16 @@ func (e *Exec) GetNameID() string { return e.nameID }
 // GetNameID8b get the first 8 bits uuid string
 func (e *Exec) GetNameID8b() string { return e.nameID[:8] }
 
-// GetTime get time of job
-func (e *Exec) GetTime() string { return e.time }
-
-// GetDone get done signal
-func (e *Exec) GetDone() bool { return e.done }
-
-// GetLogName get log name
-func (e *Exec) GetLogName() string { return e.Name + "_" + e.GetNameID8b() + ".log" }
-
 /////////////////// Main ///////////////////
+
+// CreateLogName get log name
+func (e *Exec) CreateLogName() string { return e.Name + "_" + e.GetNameID() + ".log" }
 
 // DoExec execute with Exec struct
 func (e *Exec) DoExec() {
 	// check
 	if e.Name == "" {
-		e.Name = "BackConsole-" + e.GetNameID8b()
+		e.Name = "BTerminal-" + e.GetNameID8b()
 	}
 	if e.Command == "" {
 		// do nothing
@@ -68,41 +109,38 @@ func (e *Exec) DoExec() {
 	}
 
 	// exec
-	logName := e.GetLogName()
-	DoExecute(logName, e.Command)
-	e.done = true
+	e.Lock()
+	DoExecute(e.LogName, e.Command)
+	e.Unlock()
 }
 
 // StartCron do schedule of Exec
 func (e *Exec) StartCron() {
-	// check
-	//if e.CronOP != CronStart || e.CronOP != CronEnd {
-	//return
-	//}
-	if e.time == "" {
-		log.Fatalln("no time")
-	}
-
 	// start cron
 	e.Cron = cron.New()
-	if _, err := e.Cron.AddFunc(e.time, func() {e.DoExec()}); err != nil {
-		log.Fatalln(err)
+	fmt.Println("cron start")
+	if _, err := e.Cron.AddFunc(e.Time, func() { e.DoExec() }); err != nil {
+		e.WriteLog(err)
 	}
-	log.Println(e.Name + " cron start!")
+	e.WriteLog(e.Name + " cron start!")
 	e.Cron.Start()
+	fmt.Println("cron ok")
 }
 
 // StopCron to stop job
 func (e *Exec) StopCron() {
+	e.Lock()
 	e.Cron.Stop()
-	e.done = false
-	log.Println(e.Name + " cron has stopped!")
+	e.Unlock()
+	e.WriteLog(e.Name + " cron has stopped!")
 }
 
 // DeleteLog to delete log
 func (e *Exec) DeleteLog() error {
-	logName := e.GetLogName()
-	return os.RemoveAll(logName)
+	e.Lock()
+	err := os.RemoveAll(e.LogName)
+	e.Unlock()
+	return err
 }
 
 // DoExecute execute command and log recording
@@ -115,7 +153,6 @@ func DoExecute(logName string, command string) {
 	cmd := exec.Command(args[0], args[1:]...)
 	log.SetFlags(log.Ldate | log.Ltime | log.LUTC)
 
-	log.Println("do execute")
 	f, err := os.OpenFile(
 		logName,
 		os.O_RDWR|os.O_CREATE|os.O_APPEND,

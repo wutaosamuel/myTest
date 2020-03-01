@@ -69,6 +69,9 @@ func HandleJobs(w http.ResponseWriter, req *http.Request) {
 	// TODO: do exec here
 	if req.Method == "POST" {
 		PrintHTMLInfo(req)
-		fmt.Println("need job action")
+		for key, value := range req.Form {
+			fmt.Println("key: "+key)
+			fmt.Println(value)
+		}
 	}
 }

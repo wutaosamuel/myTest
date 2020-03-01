@@ -14,17 +14,18 @@ import (
 
 func main() {
 	fmt.Println("test start")
-	//testExec()
-	testServer()
+	testExec()
+	//testServer()
 }
 
 // testExec test exec
 func testExec() {
 	testExec := job.NewExec()
 	testExec.Name = "testExec"
-	logName := testExec.GetLogName()
 	testExec.Command = "ls -l"
 	testExec.SetCronTime("*/1", "*", "*", "*", "*")
+	testExec.Init()
+	logName := testExec.LogName
 	fmt.Println(testExec)
 	fmt.Println("Cron Start")
 	testExec.StartCron()
@@ -91,5 +92,5 @@ func testGen() {
 	ds := []html.Detail{d1}
 	dh := html.GenerateDetail(ds, string(templateD), string(patternD))
 	utils.SaveHTML(filenameD, dh)
-	fmt.Println("down")
+	fmt.Println("done")
 }

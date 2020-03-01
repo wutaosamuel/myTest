@@ -12,11 +12,11 @@ func TestDoExec(t *testing.T) {
 	testExec.Name = "tmp"
 	logName := testExec.Name + testExec.GetNameID8b() + ".log"
 	testExec.Command = "ls -l"
-	testExec.SetCronTime("*/2", "*", "*", "*", "*")
+	testExec.SetCronTime("*/1", "*", "*", "*", "*")
 	t.Log(testExec)
 	testExec.StartCron()
 	t.Log("Cron Start")
-	time.Sleep(time.Duration(9)*time.Second)
+	time.Sleep(time.Duration(121)*time.Second)
 	testExec.StopCron()
 	t.Log("Cron Stop")
 
