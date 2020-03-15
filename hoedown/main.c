@@ -41,8 +41,9 @@ void GenerateHTML(char *markdownText) {
   hoedown_buffer_puts(ib, markdownText);
   // renderer
   renderer = hoedown_html_renderer_new(0, 0);
+  //renderer = hoedown_html_toc_renderer_new(0);
   // document by render
-  document = hoedown_document_new(renderer, extensions, 16);
+  document = hoedown_document_new(renderer, 0, 16);
   // start render to markdown
   hoedown_document_render(document, ob, ib->data, ib->size);
   // save to test.html file
