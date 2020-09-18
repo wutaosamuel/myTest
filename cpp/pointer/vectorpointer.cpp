@@ -12,9 +12,14 @@ void printvec(int &p)
 int main()
 {
   vector<int> vec;
-  //int *p = new int;
+  int *ip = new int;
   vec.push_back(1);
   vec.push_back(2);
+  cout << "size: " << vec.size() << endl;
+
+  ip = &vec[0];
+  cout << "int pointer: "<< *ip << endl;
+
   for (int i = 0; i < vec.capacity(); ++i)
   {
     //p = &vec[i];
@@ -25,5 +30,6 @@ int main()
     //p = &vec[i];
     printvec(vec[i]);
   }
+
   return 0;
 }
