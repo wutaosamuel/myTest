@@ -34,13 +34,19 @@ func GetBranchStatus(message string) []string {
 	rgx := regexp.MustCompile(`\((.*?)\)`)
 	for k, v := range split {
 		if canAdd {
+			bra := strings.Fields(v)
+			if len(bra) == 0 {
+				continue
+			}
+			branch := bra[0]
+			fmt.Println(branch)
 			res := rgx.FindString(v)
+			res = strings.Trim(res, "()")
 			result = append(result, res)
 		}
 		if v == cutMark {
 			canAdd = true
-			fmt.Println(k)
-			fmt.Println(v)
+			fmt.Println(k, v)
 		}
 	}
 	return result
