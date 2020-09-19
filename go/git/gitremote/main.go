@@ -12,7 +12,8 @@ func main() {
 	panicError(err)
 	remotes, err := repo.Remotes()
 	panicError(err)
-	//fmt.Println(remotes)
+	fmt.Println(remotes)
+	fmt.Println("Print details: ")
 	for _, remote := range remotes {
 		remoteConfig := remote.Config()
 		fmt.Println(remoteConfig.Name)
