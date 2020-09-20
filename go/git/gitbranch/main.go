@@ -6,6 +6,7 @@ import (
 	"github.com/go-git/go-git/plumbing"
 )
 
+// TODO: not work get branch info in gogit
 func main() {
 	var gitPath = "/home/pi/project/test"
 	repo, err := gogit.PlainOpen(gitPath)
@@ -30,5 +31,5 @@ func panicError(err error) {
 
 // branchGit by git command
 func branchGit() {
-	
+
 }
