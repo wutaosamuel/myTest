@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"os/exec"
 	"strings"
 )
@@ -40,10 +41,10 @@ func cut(message string) map[string][]string {
 		gitPush, gitPushes}
 
 	// split message to 3 substring index
-	m := strings.Split(message, "\n")
+	mLines := strings.Split(message, "\n")
 	cutNum := 0
 	cutIndex := []int{-1, -1, -1}
-	for k, v := range m {
+	for k, v := range mLines {
 		for i := cutNum; i < len(cutMark); i++ {
 			if v == cutMark[i] {
 				if i == 0 || i == 1 {
@@ -61,20 +62,23 @@ func cut(message string) map[string][]string {
 		}
 	}
 
-	fmt.Println(cutIndex)
 	result := make(map[string][]string, 0)
 	// last line of message maybe blank -> do nothing of any blank line
 	// may reverse order of result
-	for i := len(m) - 1; i >= 0; i-- {
-		if m[i] == "" {
+	for i := len(mLines) - 1; i >= 0; i-- {
+		if mLines[i] == "" {
 			continue
 		}
+
+		m := strings.TrimSpace(mLines[i])
+
 		if i == cutIndex[2] {
 			cutIndex[2] = -1
 			continue
 		}
 		if i > cutIndex[2] && cutIndex[2] != -1 {
-			result["push"] = append(result["push"], m[i])
+			result["push"] = append(result["push"], m)
+			fmt.Println(getPushStatus(m))
 			continue
 		}
 		if i == cutIndex[1] {
@@ -82,7 +86,7 @@ func cut(message string) map[string][]string {
 			continue
 		}
 		if i > cutIndex[1] && cutIndex[1] != -1 {
-			result["pull"] = append(result["pull"], m[i])
+			result["pull"] = append(result["pull"], m)
 			continue
 		}
 		if i == cutIndex[0] {
@@ -90,10 +94,21 @@ func cut(message string) map[string][]string {
 			continue
 		}
 		if i > cutIndex[0] && cutIndex[0] != -1 {
-			result["remote"] = append(result["remote"], m[i])
+			result["remote"] = append(result["remote"], m)
 			continue
 		}
 	}
+
+	return result
+}
+
+// getPushStatus get branch status for push
+func getPushStatus(message string) map[string]string {
+	words := strings.Fields(message)
+	branch := words[0]
+	rgx := regexp.MustCompile(`\((.*?)\)`)
+	result := make(map[string]string, 0)
+	result[branch] = strings.Trim(rgx.FindString(message), "()")
 
 	return result
 }
