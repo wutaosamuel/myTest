@@ -15,7 +15,7 @@ func main() {
 		m[v] = true
 	}
 
-	for i := range m {
-		fmt.Println(i)
+	for k, v := range m {
+		fmt.Println(k, v)
 	}
 }
