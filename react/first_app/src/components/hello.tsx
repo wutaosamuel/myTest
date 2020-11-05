@@ -1,30 +1,9 @@
-import React from "react";
+import React from 'react'
 
-export interface Props {
-  name: string;
-  enthusiasmLevel?: number;
+interface Greeting {
+  name: string
 }
 
-class Hello extends React.Component<Props, object> {
-  render() {
-    const { name, enthusiasmLevel = 1 } = this.props;
-    
-    if (enthusiasmLevel <= 0) {
-      throw new Error("You could be a little more enthusiastic");
-    }
+const Hello = (props: Greeting) => <h1>Hello { props.name }</h1>
 
-    return (
-      <div className = "hello">
-        <div className="greeting">
-          Hello {name + getExclamationMarks(enthusiasmLevel)}
-        </div>
-      </div>
-    );
-  }
-}
-
-export default Hello;
-
-function getExclamationMarks(numChars: number) {
-  return Array(numChars + 1).join('!');
-}
+export default Hello
