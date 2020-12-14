@@ -13,4 +13,11 @@ func main() {
 	for k, v := range ss {
 		fmt.Println(k, v)
 	}
+
+	n := strings.Split(s, "@")
+	fmt.Println()
+	fmt.Println("No match: ")
+	for k, v := range n {
+		fmt.Println(k, v)
+	}
 }
