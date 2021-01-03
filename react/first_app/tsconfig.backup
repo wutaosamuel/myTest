@@ -1,0 +1,15 @@
+{
+  "compileOnSave": true,
+  "compilerOptions": {
+    "target": "ES6",
+    "module": "AMD",
+    "esModuleInterop": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictPropertyInitialization": true,
+    "outFile": "Content/app.js",
+    "sourceMap": true,
+    "jsx": "react",
+  }
+}

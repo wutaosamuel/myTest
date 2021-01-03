@@ -11,4 +11,14 @@ func main() {
 	for k, v := range s {
 		fmt.Println(k, v)
 	}
+
+	empty := []int{}
+	isEmpty := false
+	fmt.Println()
+	fmt.Println("Empty range")
+	for k, v := range empty {
+		isEmpty = true
+		fmt.Println(k, v)
+	}
+	fmt.Println(isEmpty)
 }
