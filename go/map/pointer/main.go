@@ -23,6 +23,7 @@ func main() {
 	fmt.Println("m:", m)
 	fmt.Println("mp:", mp)
 
+	fmt.Println()
 	fmt.Println("m change value")
 	for k, v := range m {
 		o := &v
@@ -30,6 +31,7 @@ func main() {
 	}
 	fmt.Println("m:", m)
 
+	fmt.Println()
 	fmt.Println("mp change value")
 	for k, v := range mp {
 		v.ID = k

@@ -20,4 +20,15 @@ func main() {
 	for k, v := range n {
 		fmt.Println(k, v)
 	}
+
+	sss := "abcabca32"
+	is := strings.Split(sss, "a")
+	fmt.Println()
+	fmt.Println(sss)
+	fmt.Println(is)
+	for k, v := range is {
+		fmt.Print(k)
+		fmt.Print(v)
+		fmt.Println(k)
+	}
 }

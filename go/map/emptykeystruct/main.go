@@ -23,6 +23,7 @@ func main() {
 	fmt.Println("m:", m)
 	fmt.Println("mp:", mp)
 
+	fmt.Println()
 	fmt.Println("m change value")
 	for k, v := range m {
 		o := &v
