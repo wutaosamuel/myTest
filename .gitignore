@@ -1,2 +1,5 @@
 # vscode
-.vscode
+.vscode/
+
+# python run
+__pychache__
