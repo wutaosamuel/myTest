@@ -19,6 +19,10 @@ class Obj:
             "ID": self.ID
         }
 
+    def Restore(self, dict={}):
+        self.Name = dict["Name"]
+        self.ID = dict["ID"]
+
 
 class ObjS:
     Name = ""
@@ -39,3 +43,11 @@ class ObjS:
             "Name": self.Name,
             "Objects": d
         }
+
+    def Restore(self, dict={}):
+        self.Name = dict["Name"]
+        objects_dict = dict["Objects"]
+        for d in objects_dict:
+            o = Obj()
+            o.Restore(d)
+            self.Objects.append(o)
