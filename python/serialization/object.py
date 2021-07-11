@@ -1,4 +1,13 @@
-from decimal import Decimal
+from enum import IntEnum
+
+
+class status(IntEnum):
+    NONE = 1 << 1
+    ERROR = 1 << 2
+    DONE = 1 << 3
+
+    def ToDict(self):
+        return { }
 
 
 class Obj:
@@ -27,6 +36,8 @@ class Obj:
 class ObjS:
     Name = ""
     Objects = []
+    StatusNone = status.NONE
+    StatusDone = status.DONE
 
     def __init__(self, name="", obj_s=[]):
         self.Name = name
@@ -41,11 +52,15 @@ class ObjS:
 
         return {
             "Name": self.Name,
-            "Objects": d
+            "Objects": d,
+            "StatusNone": self.StatusNone,
+            "StatusDone": self.StatusDone
         }
 
     def Restore(self, dict={}):
         self.Name = dict["Name"]
+        self.StatusNone = dict["StatusNone"]
+        self.StatusDone = dict["StatusDone"]
         objects_dict = dict["Objects"]
         for d in objects_dict:
             o = Obj()

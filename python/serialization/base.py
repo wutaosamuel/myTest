@@ -36,6 +36,9 @@ def restore(json_filename="", pickle_filename=""):
             restore.Restore(json_str)
             os.remove(json_filename)
             print("Restore from json str -> ", restore.ToDict())
+    print()
+    print("Json diff here")
+    print()
     if not pickle_filename == "":
         with open(pickle_filename, "rb") as f:
             pickle_str = pickle.load(f)
