@@ -1,6 +1,3 @@
-from decimal import Decimal
-
-
 class Obj:
     Name = ""
     ID = -1
@@ -31,11 +28,23 @@ class ObjS:
     def ToDict(self):
         d = []
         for o in self.Objects:
-            obj = Obj()
-            obj.Equal(o)
-            d.append(obj.ToDict())
+            #obj = Obj()
+            #obj.Equal(o)
+            #d.append(obj.ToDict())
+            d.append(o.ToDict())
 
         return {
             "Name": self.Name,
             "Objects": d
         }
+
+
+def test():
+    o1 = Obj("o1", 1)
+    o2 = Obj("o2", 2)
+    objects = ObjS("objects", [o1, o2])
+    print(objects.ToDict())
+
+
+if __name__ == "__main__":
+    test()
