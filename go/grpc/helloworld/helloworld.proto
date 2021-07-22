@@ -1,6 +1,8 @@
 syntax = "proto3";
 
-// protoc -I helloworld helloworld/helloworld.proto --go_out=plugins=grpc:helloworld
+// old: protoc -I helloworld helloworld/helloworld.proto --go_out=plugins=grpc:helloworld
+// newer: protoc -I helloworld helloworld/helloworld.proto --go-grpc_out=helloworld
+option go_package = "./;hw_pb";
 
 package hw_pb;
 
