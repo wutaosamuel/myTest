@@ -50,6 +50,7 @@ func Request(method, url string, params map[string]string,
 			fmt.Println(err)
 			return res, Errs("WebError Decode Error: ", err)
 		}
+		return res, nil
 	}
 
 	decoder := json.NewDecoder(res.Body)
@@ -77,5 +78,5 @@ func checkMethod(method string) error {
 		method == "PATCH" {
 		return nil
 	}
-	return errors.New("Http method not allow")
+	return errors.New("http method not allow")
 }
