@@ -15,6 +15,15 @@ type Broker interface {
 // Binance
 type Binance struct {
 	Strategy st.Strategy
+	Message string
+}
+
+// NewBinance
+func NewBinance() *Binance {
+	return &Binance{
+		Strategy: nil,
+		Message: "binance begin",
+	}
 }
 
 // Set
@@ -24,6 +33,6 @@ func (b *Binance) Set(strategy st.Strategy) {
 
 // Begin
 func (b *Binance) Begin() {
+	fmt.Println(b.Message)
 	b.Strategy.Begin()
-	fmt.Println("binance begin")
 }
