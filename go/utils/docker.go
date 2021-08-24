@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"encoding/json"
 )
 
 // cp && git submodule update --init --recursive
@@ -78,6 +79,16 @@ func (df *DockerFile) ToDockerFile() string {
 	dockerFile += df.toCmd()
 
 	return dockerFile
+}
+
+// JsonMarshal
+func (df *DockerFile) JsonMarshal() ([]byte, error) {
+	return json.Marshal(df)
+}
+
+// JsonUnmarshal
+func (df *DockerFile) JsonUnmarshal(buffer []byte) error {
+	return json.Unmarshal(buffer, df)
 }
 
 // toVersion
