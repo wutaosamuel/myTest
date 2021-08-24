@@ -63,10 +63,6 @@ func NewDockerFile() *DockerFile {
 
 // Remove
 
-// FetchDockerFile
-func (df *DockerFile) FetchDockerFile() {
-}
-
 // ToDockerFile
 func (df *DockerFile) ToDockerFile() string {
 	dockerFile := "FROM ubuntu:latest\n\n"
