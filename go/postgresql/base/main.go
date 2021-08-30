@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"reflect"
 	"io/ioutil"
 
 	_ "github.com/lib/pq"
@@ -71,6 +72,7 @@ func main() {
 	// delete
 	delete(db)
 	// allquery
+	fmt.Println("all query now")
 	tx, err := db.Begin()
 	if err != nil {
 		fmt.Println(err)
@@ -78,7 +80,7 @@ func main() {
 	}
 	o.Name = "obj"
 	key, value := o.InsertTo()
-	insert := "INSERT INTO test_object(" + key + ") VALUES (" + value + ");"
+	insert := "INSERT INTO test_schema.test_object(" + key + ") VALUES (" + value + ");"
 	if _, err := tx.Exec(insert); err != nil {
 		fmt.Println(err)
 		return
@@ -86,13 +88,17 @@ func main() {
 	o.Name = "obj_d"
 	o.ID = 2
 	key, value = o.InsertTo()
-	insert = "INSERT INTO test_object(" + key + ") VALUES (" + value + ");"
+	insert = "INSERT INTO test_schema.test_object(" + key + ") VALUES (" + value + ");"
 	if _, err := tx.Exec(insert); err != nil {
 		fmt.Println(err)
 		return
 	}
 	tx.Commit()
-	allquery(db)
+	//allquery(db)
+	res := OQuery(db, &Object{})
+	for _, r := range res {
+		fmt.Println(r)
+	}
 }
 
 // create scheme/table if not exist
@@ -128,7 +134,7 @@ func insert(db *sql.DB, obj *Object) {
 	fmt.Println()
 	fmt.Println("Start Insert")
 	key, value := obj.InsertTo()
-	insert := "INSERT INTO test_object(" + key + ") VALUES (" + value + ");"
+	insert := "INSERT INTO test_schema.test_object(" + key + ") VALUES (" + value + ");"
 	fmt.Println(insert)
 	if _, err := tx.Exec(insert); err != nil {
 		fmt.Println(err)
@@ -148,7 +154,7 @@ func query(db *sql.DB) {
 	fmt.Println()
 	fmt.Println("Start to query")
 	q := NewObject()
-	query := "SELECT * FROM test_object WHERE name = 'Object';"
+	query := "SELECT * FROM test_schema.test_object WHERE name = 'Object';"
 	row := tx.QueryRow(query)
 	if err := row.Scan(q.SelectTo()...); err != nil {
 		fmt.Println(err)
@@ -168,14 +174,14 @@ func update(db *sql.DB, obj *Object) {
 	}
 	fmt.Println()
 	fmt.Println("Start to update")
-	update := "UPDATE test_object SET " + obj.UpdateTo() + "WHERE name = 'Object';"
+	update := "UPDATE test_schema.test_object SET " + obj.UpdateTo() + "WHERE name = 'Object';"
 	if _, err := tx.Exec(update); err != nil {
 		fmt.Println(err)
 		return
 	}
 	// read whether exists
 	q := NewObject()
-	query := "SELECT * FROM test_object WHERE name = 'Object';"
+	query := "SELECT * FROM test_schema.test_object WHERE name = 'Object';"
 	row := tx.QueryRow(query)
 	if err := row.Scan(q.SelectTo()...); err != nil {
 		fmt.Println(err)
@@ -194,7 +200,7 @@ func delete(db *sql.DB) {
 	}
 	fmt.Println()
 	fmt.Println("Start to delete")
-	delete := "DELETE FROM test_object WHERE name = 'Object'"
+	delete := "DELETE FROM test_schema.test_object WHERE name = 'Object'"
 	if _, err := tx.Exec(delete); err != nil {
 		fmt.Println(err)
 		return
@@ -202,13 +208,13 @@ func delete(db *sql.DB) {
 }
 
 // allquery
-func allquery(db *sql.DB) {
+func Allquery(db *sql.DB) {
 	tx, err := db.Begin()
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	allquery := "SELECT * FROM test_object;"
+	allquery := "SELECT * FROM test_schema.test_object;"
 	rows, err := tx.Query(allquery)
 	if err != nil {
 		fmt.Println(err)
@@ -227,4 +233,48 @@ func allquery(db *sql.DB) {
 		return
 	}
 	tx.Commit()
+}
+
+// OQuery
+func OQuery(db *sql.DB, model interface{}) []interface{} {
+	result := make([]interface{}, 0)
+	tx, err := db.Begin()
+	if err != nil {
+		fmt.Println(err)
+		return result
+	}
+	m := reflect.TypeOf(model)
+	if m.Kind() == reflect.Ptr {
+		m = m.Elem()
+	}
+	if m.Kind() != reflect.Struct {
+		return nil
+	}
+
+	allquery := "SELECT * FROM test_schema.test_object;"
+	rows, err := tx.Query(allquery)
+	if err != nil {
+		fmt.Println(err)
+		return result
+	}
+	for rows.Next() {
+		s := reflect.New(m).Elem()
+		num := s.NumField()
+		column := make([]interface{}, num)
+		for i := 0; i < num; i++ {
+			field := s.Field(i)
+			column[i] = field.Addr().Interface()
+		}
+		if err := rows.Scan(column...); err != nil {
+			fmt.Println(err)
+			return result
+		}
+		result = append(result, s.Addr().Interface())
+	}
+	if err := rows.Err(); err != nil {
+		fmt.Println(err)
+		return []interface{}{}
+	}
+	tx.Commit()
+	return result
 }

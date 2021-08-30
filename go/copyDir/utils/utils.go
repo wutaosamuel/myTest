@@ -35,15 +35,15 @@ func IsDir(dir string) (bool,error) {
 // CopyFile copy file
 func CopyFile(name, src string) error {
 	srcFile, err := os.Open(src)
+	if err != nil {
+		return err
+	}
 	defer srcFile.Close()
-	if err != nil {
-		return err
-	}
 	f, err := os.Create(name)
-	defer f.Close()
 	if err != nil {
 		return err
 	}
+	defer f.Close()
 	if _, err := io.Copy(f, srcFile); err != nil {
 		return err
 	}
@@ -51,6 +51,7 @@ func CopyFile(name, src string) error {
 }
 
 // CopyDirTree copy dir tree
+// NOTE: changed
 func CopyDirTree(dir, src string) error {
 	// check whether dir exist or not
 	isFile, err := IsFile(dir)

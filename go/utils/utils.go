@@ -1,12 +1,16 @@
 package main
 
 import (
+	"errors"
+	"io"
+	"io/ioutil"
 	"os"
+	"path"
 )
 
 // IsExist check if file or dir exist
 /**
- * IsExist 
+ * IsExist
  * @Params
  *  - path 		 		 <- absolute file path
  *
@@ -50,10 +54,10 @@ func IsFile(name string) (bool, error) {
 }
 
 // IsDir check if is a Dir, not a file
-/** 
+/**
  * IsDir
  * @Params
- * 	- dir						<- directory path with absolute path 
+ * 	- dir						<- directory path with absolute path
  *
  * @Returns
  *  - true, nil 		-> is dir
@@ -71,4 +75,77 @@ func IsDir(dir string) (bool, error) {
 		}
 	}
 	return d.IsDir(), nil
+}
+
+/**
+ *CopyDirTree copy dir with all contents to destination
+ * @Params
+ *	- dst   destination
+ *  - src		source dir
+ **/
+func CopyDirTree(dst, src string) error {
+	// check whether dir exist or not
+	if isDir, err := IsDir(dst); err != nil {
+		return err
+	} else {
+		if isDir {
+			return errors.New("directory exist")
+		}
+	}
+	// get properties of src
+	srcDir, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+
+	// copy target dir
+	if err := os.MkdirAll(dst, srcDir.Mode()); err != nil {
+		return err
+	}
+
+	// copy tree into dir
+	// sub-dirs
+	// files
+	entries, err := ioutil.ReadDir(src)
+	if err != nil {
+		return err
+	}
+	for _, entry := range entries {
+		dstChild := path.Join(dst, entry.Name())
+		srcChild := path.Join(src, entry.Name())
+		if entry.IsDir() {
+			if err := CopyDirTree(dstChild, srcChild); err != nil {
+				return err
+			}
+		}
+		if !entry.IsDir() {
+			if err := CopyFile(dstChild, srcChild); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+/**
+ *	CopyFile copy file
+ *	@Params
+ *		- dst   destination
+ *		- src   source file
+ **/
+func CopyFile(dst, src string) error {
+	srcFile, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer srcFile.Close()
+	f, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	if _, err := io.Copy(f, srcFile); err != nil {
+		return err
+	}
+	return nil
 }
