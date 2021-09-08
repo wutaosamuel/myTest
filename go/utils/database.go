@@ -102,15 +102,19 @@ func CreateSchemaTable(DB *sql.DB, schema, table, elements string) error {
  *		, 'value1', value2, ...
  *  @Params
  *    - DB  			database
+ *		- schema		schema, "" will ignore it
  *		- table     schema.table
  *		- new 			object{field:value}
  **/
-func InsertDB(DB *sql.DB, table string, new_s []interface{}) error {
+func InsertDB(DB *sql.DB, schema, table string, new_s []interface{}) error {
 	tx, err := DB.Begin()
 	if err != nil {
 		return err
 	}
 	defer tx.Commit()
+	if schema != "" {
+		table = fmt.Sprintf("%s.%s", schema, table)
+	}
 
 	for _, new := range new_s {
 		keys, values, args, err := ToInsertSQL(new)
@@ -132,6 +136,7 @@ func InsertDB(DB *sql.DB, table string, new_s []interface{}) error {
  *	NOTE: select * can fit to model field
  *  @Params
  *    - DB  				database
+ *		- schema			schema, "" will ignore it
  *		- table     	schema.table
  *		- condition		e.g. WHERE name = 'name' AND value >= 10; "" will get all values in table
  *		- new 				object{field:value}
@@ -139,13 +144,16 @@ func InsertDB(DB *sql.DB, table string, new_s []interface{}) error {
  *		- []object{field:value}
  *		- error
  **/
-func QueryDB(DB *sql.DB, table, condition string, model interface{}) ([]interface{}, error) {
+func QueryDB(DB *sql.DB, schema, table, condition string, model interface{}) ([]interface{}, error) {
 	result := make([]interface{}, 0)
 	tx, err := DB.Begin()
 	if err != nil {
 		return result, err
 	}
 	defer tx.Commit()
+	if schema != "" {
+		table = fmt.Sprintf("%s.%s", schema, table)
+	}
 
 	modelType := reflect.TypeOf(model)
 	if modelType.Kind() == reflect.Ptr {
@@ -187,16 +195,20 @@ func QueryDB(DB *sql.DB, table, condition string, model interface{}) ([]interfac
  * Update UPDATE table SET column1 = 'value1', column2 = value2 ... condition;
  * @Params
  *   - DB  					database
+ *	 - schema				schema, "" will ignore it
  *	 - table     		schema.table
  *	 - condition		e.g. WHERE name = 'name' AND value >= 10
  *	 - new 					object{field:value}
  **/
-func UpdateDB(DB *sql.DB, table, condition string, new map[string]interface{}) error {
+func UpdateDB(DB *sql.DB, schema, table, condition string, new map[string]interface{}) error {
 	tx, err := DB.Begin()
 	if err != nil {
 		return err
 	}
 	defer tx.Commit()
+	if schema != "" {
+		table = fmt.Sprintf("%s.%s", schema, table)
+	}
 
 	updateColumns, args, err := ToUpdateSQL(new)
 	if err != nil {
@@ -214,15 +226,19 @@ func UpdateDB(DB *sql.DB, table, condition string, new map[string]interface{}) e
  * Delete DELETE FROM table condition;
  * @Params
  *   - DB  					database
+ *	 - schema				schema, "" will ignore it
  *	 - table     		schema.table
  *	 - condition		e.g. WHERE name = 'name' AND value >= 10
  **/
-func DeleteDB(DB *sql.DB, table, condition string) error {
+func DeleteDB(DB *sql.DB, schema, table, condition string) error {
 	tx, err := DB.Begin()
 	if err != nil {
 		return err
 	}
 	defer tx.Commit()
+	if schema != "" {
+		table = fmt.Sprintf("%s.%s", schema, table)
+	}
 
 	delete := "DELETE FROM " + table + " " + condition + ";"
 	if _, err := tx.Exec(delete); err != nil {

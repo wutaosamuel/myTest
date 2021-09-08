@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"testing"
 
 	_ "github.com/lib/pq"
@@ -84,7 +83,6 @@ func TestDatabase(t *testing.T) {
 	}
 	schema := "test_schema"
 	table := "test_object"
-	schemaTable := fmt.Sprintf("%s.%s", schema, table)
 	elements := `"name" varchar(255) PRIMARY KEY,
 	"id" int NOT NULL,
 	"value" double precision DEFAULT 0`
@@ -113,12 +111,12 @@ func TestDatabase(t *testing.T) {
 	first := &Object{"first", 1, 12.123456789}
 	second := &Object{"second", 2, 2.123456789}
 	object := &Object{"object", -1, 0.123456789}
-	if err := InsertDB(db, schemaTable, []interface{}{zero, first, second, object}); err != nil {
+	if err := InsertDB(db, schema, table, []interface{}{zero, first, second, object}); err != nil {
 		t.Fatal(err)
 	}
 
 	t.Log("query --> pass")
-	if results, err := QueryDB(db, schemaTable, "WHERE name = 'zero'", &Object{}); err != nil {
+	if results, err := QueryDB(db, schema, table, "WHERE name = 'zero'", &Object{}); err != nil {
 		t.Fatal(err)
 	} else {
 		for i, result := range results {
@@ -131,10 +129,10 @@ func TestDatabase(t *testing.T) {
 		"name":  "o",
 		"value": 1.1,
 	}
-	if err := UpdateDB(db, schemaTable, "WHERE id = -1", changed); err != nil {
+	if err := UpdateDB(db, schema, table, "WHERE id = -1", changed); err != nil {
 		t.Fatal(err)
 	}
-	if results, err := QueryDB(db, schemaTable, "WHERE id = -1", &Object{}); err != nil {
+	if results, err := QueryDB(db, schema, table, "WHERE id = -1", &Object{}); err != nil {
 		t.Fatal(err)
 	} else {
 		for i, result := range results {
@@ -143,7 +141,7 @@ func TestDatabase(t *testing.T) {
 	}
 
 	t.Log("query all --> pass")
-	if results, err := QueryDB(db, schemaTable, "", &Object{}); err != nil {
+	if results, err := QueryDB(db, schema, table, "", &Object{}); err != nil {
 		t.Fatal(err)
 	} else {
 		for i, result := range results {
@@ -152,19 +150,19 @@ func TestDatabase(t *testing.T) {
 	}
 
 	t.Log("delete all one by one --> pass")
-	if err := DeleteDB(db, schemaTable, "WHERE name = 'zero'"); err != nil {
+	if err := DeleteDB(db, schema, table, "WHERE name = 'zero'"); err != nil {
 		t.Fatal(err)
 	}
-	if err := DeleteDB(db, schemaTable, "WHERE name = 'first'"); err != nil {
+	if err := DeleteDB(db, schema, table, "WHERE name = 'first'"); err != nil {
 		t.Fatal(err)
 	}
-	if err := DeleteDB(db, schemaTable, "WHERE name = 'second'"); err != nil {
+	if err := DeleteDB(db, schema, table, "WHERE name = 'second'"); err != nil {
 		t.Fatal(err)
 	}
-	if err := DeleteDB(db, schemaTable, "WHERE id = -1"); err != nil {
+	if err := DeleteDB(db, schema, table, "WHERE id = -1"); err != nil {
 		t.Fatal(err)
 	}
-	if results, err := QueryDB(db, schemaTable, "", &Object{}); err != nil {
+	if results, err := QueryDB(db, schema, table, "", &Object{}); err != nil {
 		t.Fatal(err)
 	} else {
 		if len(results) != 0 {
