@@ -72,12 +72,13 @@ func CreateSchema(DB *sql.DB, schema string) error {
 	if err != nil {
 		return err
 	}
-	defer tx.Commit()
 
 	schemaSQL := ToSchema(schema)
 	if _, err := tx.Exec(schemaSQL); err != nil {
+		tx.Rollback()
 		return err
 	}
+	tx.Commit()
 	return nil
 }
 
@@ -87,12 +88,29 @@ func CreateSchemaTable(DB *sql.DB, schema, table, elements string) error {
 	if err != nil {
 		return err
 	}
-	defer tx.Commit()
 
 	tableSQL := ToSchemaTable(schema, table, elements)
 	if _, err := tx.Exec(tableSQL); err != nil {
+		tx.Rollback()
 		return err
 	}
+	tx.Commit()
+	return nil
+}
+
+// DropTableDB
+func DropTableDB(DB *sql.DB, schema, table string) error {
+	tx, err := DB.Begin()
+	if err != nil {
+		return err
+	}
+
+	drop := fmt.Sprintf("DROP TABLE %s.%s;", schema, table)
+	if _, err := tx.Exec(drop); err != nil {
+		tx.Rollback()
+		return err
+	}
+	tx.Commit()
 	return nil
 }
 
@@ -111,7 +129,6 @@ func InsertDB(DB *sql.DB, schema, table string, new_s []interface{}) error {
 	if err != nil {
 		return err
 	}
-	defer tx.Commit()
 	if schema != "" {
 		table = fmt.Sprintf("%s.%s", schema, table)
 	}
@@ -119,14 +136,17 @@ func InsertDB(DB *sql.DB, schema, table string, new_s []interface{}) error {
 	for _, new := range new_s {
 		keys, values, args, err := ToInsertSQL(new)
 		if err != nil {
+			tx.Rollback()
 			return err
 		}
 
-		insert := "INSERT INTO " + table + "(" + keys + ") VALUES (" + values + ");"
+		insert := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s);", table, keys, values)
 		if _, err := tx.Exec(insert, args...); err != nil {
+			tx.Rollback()
 			return err
 		}
 	}
+	tx.Commit()
 	return nil
 }
 
@@ -150,7 +170,6 @@ func QueryDB(DB *sql.DB, schema, table, condition string, model interface{}) ([]
 	if err != nil {
 		return result, err
 	}
-	defer tx.Commit()
 	if schema != "" {
 		table = fmt.Sprintf("%s.%s", schema, table)
 	}
@@ -160,15 +179,17 @@ func QueryDB(DB *sql.DB, schema, table, condition string, model interface{}) ([]
 		modelType = modelType.Elem()
 	}
 	if modelType.Kind() != reflect.Struct {
+		tx.Rollback()
 		return result, errors.New("query model type is not struct")
 	}
 
-	query := "SELECT * FROM " + table + " " + condition + ";"
+	query := fmt.Sprintf("SELECT * FROM %s %s;", table, condition)
 	if condition == "" {
-		query = "SELECT * FROM " + table + ";"
+		query = fmt.Sprintf("SELECT * FROM %s;", table)
 	}
 	rows, err := tx.Query(query)
 	if err != nil {
+		tx.Rollback()
 		return result, err
 	}
 	for rows.Next() {
@@ -180,13 +201,16 @@ func QueryDB(DB *sql.DB, schema, table, condition string, model interface{}) ([]
 			column[i] = field.Addr().Interface()
 		}
 		if err := rows.Scan(column...); err != nil {
+			tx.Rollback()
 			return result, err
 		}
 		result = append(result, object.Addr().Interface())
 	}
 	if err := rows.Err(); err != nil {
+		tx.Rollback()
 		return result, err
 	}
+	tx.Commit()
 	return result, nil
 }
 
@@ -205,19 +229,21 @@ func UpdateDB(DB *sql.DB, schema, table, condition string, new map[string]interf
 	if err != nil {
 		return err
 	}
-	defer tx.Commit()
 	if schema != "" {
 		table = fmt.Sprintf("%s.%s", schema, table)
 	}
 
 	updateColumns, args, err := ToUpdateSQL(new)
 	if err != nil {
+		tx.Rollback()
 		return err
 	}
-	update := "UPDATE " + table + " SET " + updateColumns + " " + condition + ";"
+	update := fmt.Sprintf("UPDATE %s SET %s %s;", table, updateColumns, condition)
 	if _, err := tx.Exec(update, args...); err != nil {
+		tx.Rollback()
 		return err
 	}
+	tx.Commit()
 	return nil
 }
 
@@ -235,15 +261,16 @@ func DeleteDB(DB *sql.DB, schema, table, condition string) error {
 	if err != nil {
 		return err
 	}
-	defer tx.Commit()
 	if schema != "" {
 		table = fmt.Sprintf("%s.%s", schema, table)
 	}
 
-	delete := "DELETE FROM " + table + " " + condition + ";"
+	delete := fmt.Sprintf("DELETE FROM %s %s;", table, condition)
 	if _, err := tx.Exec(delete); err != nil {
+		tx.Rollback()
 		return err
 	}
+	tx.Commit()
 	return nil
 }
 
