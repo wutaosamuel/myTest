@@ -133,6 +133,42 @@ func InsertDB(DB *sql.DB, schema, table string, new_s []interface{}) error {
 	if err != nil {
 		return err
 	}
+
+	if err := Insert(tx, schema, table, new_s); err != nil {
+		tx.Rollback()
+		return err
+	}
+	tx.Commit()
+	return nil
+}
+
+// InsertDBs
+/**
+ *	Insert INSERT INTO table(column1, column2 ...) VALUE ($1, $2, ...);
+ *		, 'value1', value2, ...
+ *  @Params
+ *    - DB  			database
+ *		- schema		schema, "" will ignore it
+ *		- values    [Table][]ValueInTable
+ **/
+func InsertDBs(DB *sql.DB, schema string, values map[string][]interface{}) error {
+	tx, err := DB.Begin()
+	if err != nil {
+		return err
+	}
+
+	for table, new_s := range values {
+		if err := Insert(tx, schema, table, new_s); err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+	tx.Commit()
+	return nil
+}
+
+// insert
+func Insert(tx *sql.Tx, schema, table string, new_s []interface{}) error {
 	if schema != "" {
 		table = fmt.Sprintf("%s.%s", schema, table)
 	}
@@ -140,17 +176,14 @@ func InsertDB(DB *sql.DB, schema, table string, new_s []interface{}) error {
 	for _, new := range new_s {
 		keys, values, args, err := ToInsertSQL(new)
 		if err != nil {
-			tx.Rollback()
 			return err
 		}
 
 		insert := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s);", table, keys, values)
 		if _, err := tx.Exec(insert, args...); err != nil {
-			tx.Rollback()
 			return err
 		}
 	}
-	tx.Commit()
 	return nil
 }
 
