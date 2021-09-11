@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"testing"
+	"time"
 
 	_ "github.com/lib/pq"
 )
@@ -48,7 +49,7 @@ func TestInsertSQL(t *testing.T) {
 		t.Fatal("values not correct")
 	}
 	t.Log(a, "()needs to equal to()", args)
-	for i := 0; i < len(args); i ++ {
+	for i := 0; i < len(args); i++ {
 		if a[i] != args[i] {
 			t.Fatal("args not correct")
 		}
@@ -58,7 +59,7 @@ func TestInsertSQL(t *testing.T) {
 func TestUpdateSQL(t *testing.T) {
 	// Object
 	u := "id = $1, value = $2, name = $3"
-	a	:= []interface{}{-1, 12.123456789, "object"}
+	a := []interface{}{-1, 12.123456789, "object"}
 	object := map[string]interface{}{
 		"name":  "object",
 		"id":    -1,
@@ -80,12 +81,16 @@ func TestDatabase(t *testing.T) {
 		Name  string
 		ID    int
 		Value float64
+		Arr []string
+		Time time.Time
 	}
 	schema := "test_schema"
 	table := "test_object"
 	elements := `"name" varchar(255) PRIMARY KEY,
 	"id" int NOT NULL,
-	"value" double precision DEFAULT 0`
+	"value" double precision DEFAULT 0,
+	"arr" varchar(255)[] DEFAULT '{}',
+	"time" timestamp DEFAULT CURRENT_TIMESTAMP`
 	database := NewDatabase()
 	database.Set("172.16.8.221", 5432, "pi", "wutaowutao", "test")
 	db, err := sql.Open("postgres", database.Source())
@@ -95,7 +100,6 @@ func TestDatabase(t *testing.T) {
 	db.SetMaxOpenConns(2000)
 	db.SetMaxIdleConns(1000)
 
-	t.Log()
 	t.Log("create schema  --> pass")
 	if err := CreateSchema(db, "test_schema"); err != nil {
 		t.Fatal(err)
@@ -107,10 +111,14 @@ func TestDatabase(t *testing.T) {
 	}
 
 	t.Log("insert  --> pass")
-	zero := &Object{"zero", 0, 12.123456789}
-	first := &Object{"first", 1, 12.123456789}
-	second := &Object{"second", 2, 2.123456789}
-	object := &Object{"object", -1, 0.123456789}
+	zero := &Object{"zero", 0, 12.123456789, []string{"zero", "is"}, time.Now()}
+	first := &Object{"first", 1, 12.123456789, []string{"first", "arr"}, time.Now()}
+	second := &Object{"second", 2, 2.123456789,[]string{}, time.Now()}
+	object := &Object{"object", -1, 0.123456789,[]string{}, time.Now()}
+	//zero := &Object{"zero", 0, 12.123456789, time.Now()}
+	//first := &Object{"first", 1, 12.123456789, time.Now()}
+	//second := &Object{"second", 2, 2.123456789, time.Now()}
+	//object := &Object{"object", -1, 0.123456789, time.Now()}
 	if err := InsertDB(db, schema, table, []interface{}{zero, first, second, object}); err != nil {
 		t.Fatal(err)
 	}

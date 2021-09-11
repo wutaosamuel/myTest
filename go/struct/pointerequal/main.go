@@ -10,6 +10,12 @@ type Obj struct {
 	ID   int
 }
 
+// Equal
+func (o *Obj) PP() {
+	obj := &Obj{"pp", 11}
+	*o = *obj
+}
+
 func main() {
 	o1 := Obj{"o1", 1}
 	o2 := Obj{"o1", 1}
@@ -40,4 +46,14 @@ func main() {
 	if *pv1 != *pv2 {
 		fmt.Println("*pv1 != *pv2")
 	}
+
+	pp := &Obj{"pp", 11}
+	pv := &Obj{}
+	pv.PP()
+	if *pp != *pv {
+		fmt.Println("*pp != *pv")
+	}else{
+		fmt.Println("*pp == *pv")
+	}
+
 }

@@ -6,7 +6,11 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+
+	pq "github.com/lib/pq"
 )
+
+// TODO: (wu tao) don't use *sql.DB, sql.Tx to increase performance
 
 // Database
 type Database struct {
@@ -198,6 +202,10 @@ func QueryDB(DB *sql.DB, schema, table, condition string, model interface{}) ([]
 		column := make([]interface{}, numField)
 		for i := 0; i < numField; i++ {
 			field := object.Field(i)
+			if arr := ToSQLArray(field); arr != nil {
+				column[i] = arr
+				continue
+			}
 			column[i] = field.Addr().Interface()
 		}
 		if err := rows.Scan(column...); err != nil {
@@ -294,6 +302,11 @@ func ToInsertSQL(new interface{}) (string, string, []interface{}, error) {
 		value := v.Field(i)
 		keys += fmt.Sprintf("%s, ", strings.ToLower(field.Name))
 		values += fmt.Sprintf("$%d, ", i+1)
+		// add args, but careful of arg is array
+		if arr := ToSQLArray(value); arr != nil {
+			args = append(args, arr)
+			continue
+		}
 		args = append(args, value.Interface())
 	}
 	//last one
@@ -301,6 +314,11 @@ func ToInsertSQL(new interface{}) (string, string, []interface{}, error) {
 	value := v.Field(numField - 1)
 	keys += strings.ToLower(field.Name)
 	values += fmt.Sprintf("$%d", numField)
+	// add args, but careful of arg is array
+	if arr := ToSQLArray(value); arr != nil {
+		args = append(args, arr)
+		return keys, values, args, nil
+	}
 	args = append(args, value.Interface())
 	return keys, values, args, nil
 }
@@ -314,13 +332,36 @@ func ToUpdateSQL(new map[string]interface{}) (string, []interface{}, error) {
 		// last one
 		if i == len(new)-1 {
 			sql += fmt.Sprintf("%s = $%d", strings.ToLower(k), i+1)
+			value := reflect.ValueOf(v)
+			if arr := ToSQLArray(value); arr != nil {
+				args = append(args, arr)
+				return sql, args, nil
+			}
 			args = append(args, v)
 			return sql, args, nil
 		}
 
 		i += 1
 		sql += fmt.Sprintf("%s = $%d, ", strings.ToLower(k), i)
+		value := reflect.ValueOf(v)
+		if arr := ToSQLArray(value); arr != nil {
+			args = append(args, arr)
+			continue
+		}
 		args = append(args, v)
 	}
 	return sql, args, nil
+}
+
+// ToSQLArray
+func ToSQLArray(value reflect.Value) interface{} {
+	switch value.Kind() {
+	case reflect.Array, reflect.Slice:
+		for _, driver := range sql.Drivers() {
+			if driver == "postgres" {
+				return pq.Array(value.Interface())
+			}
+		}
+	}
+	return nil
 }
