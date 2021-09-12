@@ -115,10 +115,6 @@ func TestDatabase(t *testing.T) {
 	first := &Object{"first", 1, 12.123456789, []string{"first", "arr"}, time.Now()}
 	second := &Object{"second", 2, 2.123456789,[]string{}, time.Now()}
 	object := &Object{"object", -1, 0.123456789,[]string{}, time.Now()}
-	//zero := &Object{"zero", 0, 12.123456789, time.Now()}
-	//first := &Object{"first", 1, 12.123456789, time.Now()}
-	//second := &Object{"second", 2, 2.123456789, time.Now()}
-	//object := &Object{"object", -1, 0.123456789, time.Now()}
 	if err := InsertDB(db, schema, table, []interface{}{zero, first, second, object}); err != nil {
 		t.Fatal(err)
 	}

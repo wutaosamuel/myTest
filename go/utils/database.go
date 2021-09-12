@@ -392,7 +392,7 @@ func ToSQLArray(value reflect.Value) interface{} {
 	case reflect.Array, reflect.Slice:
 		for _, driver := range sql.Drivers() {
 			if driver == "postgres" {
-				return pq.Array(value.Interface())
+				return pq.Array(value.Addr().Interface())
 			}
 		}
 	}
