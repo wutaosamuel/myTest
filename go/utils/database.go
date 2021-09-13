@@ -86,6 +86,21 @@ func CreateSchema(DB *sql.DB, schema string) error {
 	return nil
 }
 
+// DropSchema
+func DropSchemaClean(DB *sql.DB, schema string) error {
+	tx, err := DB.Begin()
+	if err != nil {
+		return err
+	}
+	dropSQL := fmt.Sprintf("DROP SCHEMA IF EXISTS %s CASCADE;", schema)
+	if _, err := tx.Exec(dropSQL); err != nil {
+		tx.Rollback()
+		return err
+	}
+	tx.Commit()
+	return nil
+}
+
 // CreateSchemaTable
 func CreateSchemaTable(DB *sql.DB, schema, table, elements string) error {
 	tx, err := DB.Begin()

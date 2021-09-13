@@ -173,4 +173,13 @@ func TestDatabase(t *testing.T) {
 			t.Fatal("not delete all yet")
 		}
 	}
+
+	// drop schema
+	t.Log("drop schema --> pass")
+	if err := InsertDB(db, schema, table, []interface{}{zero, first, second, object}); err != nil {
+		t.Fatal(err)
+	}
+	if err := DropSchemaClean(db, schema); err != nil {
+		t.Fatal(err)
+	}
 }
