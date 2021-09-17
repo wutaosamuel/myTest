@@ -41,6 +41,18 @@ func (db *Database) Set(host string, port int, user, password, db_name string) {
 	db.DBName = db_name
 }
 
+// Open
+func (db *Database) Open(name string) (*sql.DB, error) {
+	if name == "postgres" {
+		db, err := sql.Open("postgres", db.Source())
+		if err != nil {
+			return nil, err
+		}
+		return db, nil
+	}
+	return nil, errors.New("not support " + name)
+}
+
 // Source
 // postgre
 func (db *Database) Source() string {
@@ -149,7 +161,7 @@ func InsertDB(DB *sql.DB, schema, table string, new_s []interface{}) error {
 		return err
 	}
 
-	if err := Insert(tx, schema, table, new_s); err != nil {
+	if err := InsertTx(tx, schema, table, new_s); err != nil {
 		tx.Rollback()
 		return err
 	}
@@ -173,7 +185,7 @@ func InsertDBs(DB *sql.DB, schema string, values map[string][]interface{}) error
 	}
 
 	for table, new_s := range values {
-		if err := Insert(tx, schema, table, new_s); err != nil {
+		if err := InsertTx(tx, schema, table, new_s); err != nil {
 			tx.Rollback()
 			return err
 		}
@@ -183,7 +195,7 @@ func InsertDBs(DB *sql.DB, schema string, values map[string][]interface{}) error
 }
 
 // insert
-func Insert(tx *sql.Tx, schema, table string, new_s []interface{}) error {
+func InsertTx(tx *sql.Tx, schema, table string, new_s []interface{}) error {
 	if schema != "" {
 		table = fmt.Sprintf("%s.%s", schema, table)
 	}
@@ -217,11 +229,23 @@ func Insert(tx *sql.Tx, schema, table string, new_s []interface{}) error {
  *		- error
  **/
 func QueryDB(DB *sql.DB, schema, table, condition string, model interface{}) ([]interface{}, error) {
-	result := make([]interface{}, 0)
+	results := make([]interface{}, 0)
 	tx, err := DB.Begin()
 	if err != nil {
-		return result, err
+		return results, err
 	}
+
+	if results, err = QueryTx(tx, schema, table, condition, model); err != nil {
+		tx.Rollback()
+		return results, err
+	}
+	tx.Commit()
+	return results, nil
+}
+
+// QueryTx
+func QueryTx(tx *sql.Tx, schema, table, condition string, model interface{}) ([]interface{}, error) {
+	results := make([]interface{}, 0)
 	if schema != "" {
 		table = fmt.Sprintf("%s.%s", schema, table)
 	}
@@ -231,8 +255,7 @@ func QueryDB(DB *sql.DB, schema, table, condition string, model interface{}) ([]
 		modelType = modelType.Elem()
 	}
 	if modelType.Kind() != reflect.Struct {
-		tx.Rollback()
-		return result, errors.New("query model type is not struct")
+		return results, errors.New("query model type is not struct")
 	}
 
 	query := fmt.Sprintf("SELECT * FROM %s %s;", table, condition)
@@ -241,8 +264,7 @@ func QueryDB(DB *sql.DB, schema, table, condition string, model interface{}) ([]
 	}
 	rows, err := tx.Query(query)
 	if err != nil {
-		tx.Rollback()
-		return result, err
+		return results, err
 	}
 	for rows.Next() {
 		object := reflect.New(modelType).Elem()
@@ -257,17 +279,14 @@ func QueryDB(DB *sql.DB, schema, table, condition string, model interface{}) ([]
 			column[i] = field.Addr().Interface()
 		}
 		if err := rows.Scan(column...); err != nil {
-			tx.Rollback()
-			return result, err
+			return results, err
 		}
-		result = append(result, object.Addr().Interface())
+		results = append(results, object.Addr().Interface())
 	}
 	if err := rows.Err(); err != nil {
-		tx.Rollback()
-		return result, err
+		return results, err
 	}
-	tx.Commit()
-	return result, nil
+	return results, nil
 }
 
 // Update
@@ -303,6 +322,56 @@ func UpdateDB(DB *sql.DB, schema, table, condition string, new map[string]interf
 	return nil
 }
 
+// UpdateDeepDB check exist first. If not, insert it. If yes, delete and than insert
+func UpdateDeepDB(DB *sql.DB, schema, table, condition string, object interface{}) error {
+	tx, err := DB.Begin()
+	if err != nil {
+		return err
+	}
+
+	// query
+	results, err := QueryTx(tx, schema, table, condition, object)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// if not exist, insert it
+	if len(results) == 0 {
+		if err := InsertTx(tx, schema, table, []interface{}{object}); err != nil {
+			tx.Rollback()
+			return err
+		}
+		tx.Commit()
+		return nil
+	}
+
+	// if too much result
+	if len(results) != 1 {
+		tx.Rollback()
+		return errors.New("the query contain multiple result")
+	}
+
+	// if exist and equal value, do nothing
+	result := results[0]
+	if structEqual(result, object) {
+		tx.Rollback()
+		return nil
+	}
+
+	// if exit but not equal, delete and insert
+	if err := DeleteTx(tx, schema, table, condition); err != nil {
+		tx.Rollback()
+		return err
+	}
+	if err := InsertTx(tx, schema, table, []interface{}{object}); err != nil {
+		tx.Rollback()
+		return err
+	}
+	tx.Commit()
+	return nil
+}
+
 // Delete
 /**
  * Delete DELETE FROM table condition;
@@ -317,16 +386,24 @@ func DeleteDB(DB *sql.DB, schema, table, condition string) error {
 	if err != nil {
 		return err
 	}
+	if err := DeleteTx(tx, schema, table, condition); err != nil {
+		tx.Rollback()
+		return err
+	}
+	tx.Commit()
+	return nil
+}
+
+// DeleteTx
+func DeleteTx(tx *sql.Tx, schema, table, condition string) error {
 	if schema != "" {
 		table = fmt.Sprintf("%s.%s", schema, table)
 	}
 
 	delete := fmt.Sprintf("DELETE FROM %s %s;", table, condition)
 	if _, err := tx.Exec(delete); err != nil {
-		tx.Rollback()
 		return err
 	}
-	tx.Commit()
 	return nil
 }
 
@@ -412,4 +489,17 @@ func ToSQLArray(value reflect.Value) interface{} {
 		}
 	}
 	return nil
+}
+
+// structEqual
+func structEqual(object1, object2 interface{}) bool {
+	object1Value := reflect.ValueOf(object1)
+	object2Value := reflect.ValueOf(object2)
+	if object1Value.Kind() == reflect.Ptr {
+		object1Value = object1Value.Elem()
+	}
+	if object2Value.Kind() == reflect.Ptr {
+		object2Value = object2Value.Elem()
+	}
+	return reflect.DeepEqual(object1Value.Interface(), object2Value.Interface())
 }

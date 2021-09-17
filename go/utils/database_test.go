@@ -8,6 +8,38 @@ import (
 	_ "github.com/lib/pq"
 )
 
+const (
+	test_schema = "test_schema"
+	test_table = "test_object"
+	test_elements = `"name" varchar(255) PRIMARY KEY,
+	"id" int NOT NULL,
+	"value" double precision DEFAULT 0,
+	"arr" varchar(255)[] DEFAULT '{}',
+	"time" timestamp DEFAULT CURRENT_TIMESTAMP`
+)
+
+// Test Object
+type Object struct {
+	Name  string
+	ID    int
+	Value float64
+	Arr   []string
+	Time  time.Time
+}
+
+// TestOpenDB
+func openDB() (*sql.DB, error) {
+	database := NewDatabase()
+	database.Set("172.16.8.221", 5432, "pi", "wutaowutao", "test")
+	db, err := sql.Open("postgres", database.Source())
+	if err != nil {
+		return nil, err
+	}
+	db.SetMaxOpenConns(2000)
+	db.SetMaxIdleConns(1000)
+	return db, nil
+}
+
 func TestCreateSchema(t *testing.T) {
 	sql := ToSchema("test_schema")
 	t.Log("TestCreateSchema  --> pass")
@@ -76,51 +108,32 @@ func TestUpdateSQL(t *testing.T) {
 }
 
 func TestDatabase(t *testing.T) {
-	// Object
-	type Object struct {
-		Name  string
-		ID    int
-		Value float64
-		Arr []string
-		Time time.Time
-	}
-	schema := "test_schema"
-	table := "test_object"
-	elements := `"name" varchar(255) PRIMARY KEY,
-	"id" int NOT NULL,
-	"value" double precision DEFAULT 0,
-	"arr" varchar(255)[] DEFAULT '{}',
-	"time" timestamp DEFAULT CURRENT_TIMESTAMP`
-	database := NewDatabase()
-	database.Set("172.16.8.221", 5432, "pi", "wutaowutao", "test")
-	db, err := sql.Open("postgres", database.Source())
+	db, err := openDB()
 	if err != nil {
 		t.Fatal(err)
 	}
-	db.SetMaxOpenConns(2000)
-	db.SetMaxIdleConns(1000)
 
 	t.Log("create schema  --> pass")
-	if err := CreateSchema(db, "test_schema"); err != nil {
+	if err := CreateSchema(db, test_schema); err != nil {
 		t.Fatal(err)
 	}
 
 	t.Log("create schema.table  --> pass")
-	if err := CreateSchemaTable(db, schema, table, elements); err != nil {
+	if err := CreateSchemaTable(db, test_schema, test_table, test_elements); err != nil {
 		t.Fatal(err)
 	}
 
 	t.Log("insert  --> pass")
 	zero := &Object{"zero", 0, 12.123456789, []string{"zero", "is"}, time.Now()}
 	first := &Object{"first", 1, 12.123456789, []string{"first", "arr"}, time.Now()}
-	second := &Object{"second", 2, 2.123456789,[]string{}, time.Now()}
-	object := &Object{"object", -1, 0.123456789,[]string{}, time.Now()}
-	if err := InsertDB(db, schema, table, []interface{}{zero, first, second, object}); err != nil {
+	second := &Object{"second", 2, 2.123456789, []string{}, time.Now()}
+	object := &Object{"object", -1, 0.123456789, []string{}, time.Now()}
+	if err := InsertDB(db, test_schema, test_table, []interface{}{zero, first, second, object}); err != nil {
 		t.Fatal(err)
 	}
 
 	t.Log("query --> pass")
-	if results, err := QueryDB(db, schema, table, "WHERE name = 'zero'", &Object{}); err != nil {
+	if results, err := QueryDB(db, test_schema, test_table, "WHERE name = 'zero'", &Object{}); err != nil {
 		t.Fatal(err)
 	} else {
 		for i, result := range results {
@@ -133,10 +146,10 @@ func TestDatabase(t *testing.T) {
 		"name":  "o",
 		"value": 1.1,
 	}
-	if err := UpdateDB(db, schema, table, "WHERE id = -1", changed); err != nil {
+	if err := UpdateDB(db, test_schema, test_table, "WHERE id = -1", changed); err != nil {
 		t.Fatal(err)
 	}
-	if results, err := QueryDB(db, schema, table, "WHERE id = -1", &Object{}); err != nil {
+	if results, err := QueryDB(db, test_schema, test_table, "WHERE id = -1", &Object{}); err != nil {
 		t.Fatal(err)
 	} else {
 		for i, result := range results {
@@ -145,7 +158,7 @@ func TestDatabase(t *testing.T) {
 	}
 
 	t.Log("query all --> pass")
-	if results, err := QueryDB(db, schema, table, "", &Object{}); err != nil {
+	if results, err := QueryDB(db, test_schema, test_table, "", &Object{}); err != nil {
 		t.Fatal(err)
 	} else {
 		for i, result := range results {
@@ -154,19 +167,19 @@ func TestDatabase(t *testing.T) {
 	}
 
 	t.Log("delete all one by one --> pass")
-	if err := DeleteDB(db, schema, table, "WHERE name = 'zero'"); err != nil {
+	if err := DeleteDB(db, test_schema, test_table, "WHERE name = 'zero'"); err != nil {
 		t.Fatal(err)
 	}
-	if err := DeleteDB(db, schema, table, "WHERE name = 'first'"); err != nil {
+	if err := DeleteDB(db, test_schema, test_table, "WHERE name = 'first'"); err != nil {
 		t.Fatal(err)
 	}
-	if err := DeleteDB(db, schema, table, "WHERE name = 'second'"); err != nil {
+	if err := DeleteDB(db, test_schema, test_table, "WHERE name = 'second'"); err != nil {
 		t.Fatal(err)
 	}
-	if err := DeleteDB(db, schema, table, "WHERE id = -1"); err != nil {
+	if err := DeleteDB(db, test_schema, test_table, "WHERE id = -1"); err != nil {
 		t.Fatal(err)
 	}
-	if results, err := QueryDB(db, schema, table, "", &Object{}); err != nil {
+	if results, err := QueryDB(db, test_schema, test_table, "", &Object{}); err != nil {
 		t.Fatal(err)
 	} else {
 		if len(results) != 0 {
@@ -176,10 +189,104 @@ func TestDatabase(t *testing.T) {
 
 	// drop schema
 	t.Log("drop schema --> pass")
-	if err := InsertDB(db, schema, table, []interface{}{zero, first, second, object}); err != nil {
+	if err := InsertDB(db, test_schema, test_table, []interface{}{zero, first, second, object}); err != nil {
 		t.Fatal(err)
 	}
-	if err := DropSchemaClean(db, schema); err != nil {
+	if err := DropSchemaClean(db, test_schema); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// TestQueryEmpty
+func TestQueryEmpty(t *testing.T) {
+	db, err := openDB()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Log("create schema  --> pass")
+	if err := CreateSchema(db, test_schema); err != nil {
+		t.Fatal(err)
+	}
+
+	t.Log("create schema.table  --> pass")
+	if err := CreateSchemaTable(db, test_schema, test_table, test_elements); err != nil {
+		t.Fatal(err)
+	}
+
+	t.Log("query empty --> pass")
+	if results, err := QueryDB(db, test_schema, test_table, "WHERE name = 'zero'", &Object{}); err != nil {
+		t.Fatal(err)
+	} else {
+		t.Log(len(results))
+		for i, result := range results {
+			t.Log("all query result", i, ": ", result)
+		}
+	}
+
+	if err := DropSchemaClean(db, test_schema); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// TestUpdateDeepDB
+func TestUpdateDeepDB(t *testing.T) {
+	db, err := openDB()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Log("create schema  --> pass")
+	if err := CreateSchema(db, test_schema); err != nil {
+		t.Fatal(err)
+	}
+
+	t.Log("create schema.table  --> pass")
+	if err := CreateSchemaTable(db, test_schema, test_table, test_elements); err != nil {
+		t.Fatal(err)
+	}
+
+	t.Log("Insert empty --> pass")
+	zero := &Object{"zero", 0, 12.123456789, []string{"zero", "is"}, time.Now()}
+	if err := UpdateDeepDB(db, test_schema, test_table, "WHERE name = 'zero'", zero); err != nil {
+		t.Fatal(err)
+	}
+	if results, err := QueryDB(db, test_schema, test_table, "WHERE name = 'zero'", &Object{}); err != nil {
+		t.Fatal(err)
+	} else {
+		t.Log(len(results))
+		if len(results) != 1 {
+			t.Fatal("insert empty not correct")
+		}
+		for i, result := range results {
+			t.Log("all query result", i, ": ", result)
+		}
+	}
+
+	t.Log("same object --> ")
+	if err := UpdateDeepDB(db, test_schema, test_table, "WHERE name = 'zero'", zero); err != nil {
+		t.Fatal(err)
+	}
+
+	t.Log("update object --> ")
+	zero.ID = 999
+	zero.Value = 1.123548
+	if err := UpdateDeepDB(db, test_schema, test_table, "WHERE name = 'zero'", zero); err != nil {
+		t.Fatal(err)
+	}
+	if results, err := QueryDB(db, test_schema, test_table, "WHERE name = 'zero'", &Object{}); err != nil {
+		t.Fatal(err)
+	} else {
+		t.Log(len(results))
+		if len(results) != 1 {
+			t.Fatal("update empty not correct")
+		}
+		for i, result := range results {
+			t.Log("all query result", i, ": ", result)
+		}
+	}
+
+	if err := DropSchemaClean(db, test_schema); err != nil {
 		t.Fatal(err)
 	}
 }
