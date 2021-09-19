@@ -11,6 +11,8 @@ const (
 	DefaultCycleTime = time.Hour
 )
 
+// TODO: update value automatically
+
 // Cache
 type CalledCache struct {
 	*cache
@@ -125,6 +127,11 @@ func (c *cache) Flush() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
+	c.flush()
+}
+
+// flush
+func (c *cache) flush() {
 	c.items = make(map[string]*Item)
 	c.counter = make(map[string]*ItemCounter)
 }
@@ -154,11 +161,16 @@ func (c *cache) DeleteNoneFrequency() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
+	if c.frequency == -1 {
+		c.flush()
+		return
+	}
+
 	for k, v := range c.counter {
 		if v.Value < c.frequency {
 			delete(c.counter, k)
 			delete(c.items, k)
-			break
+			continue
 		}
 		// reset counter
 		v.Value = 0

@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-const isDebug = false
+const isDebug = true
 
 func TestCache(t *testing.T) {
 	var found bool
@@ -106,6 +106,48 @@ func TestCacheTime(t *testing.T) {
 	}
 	if c != nil {
 		t.Error("c value should be delete, should be nil now")
+	}
+}
+
+// TestAutoFlush
+func TestAutoFlush(t *testing.T) {
+	var found bool
+	cc := NewCalledCache(time.Minute, -1)
+
+	itemLen := cc.ItemCount()
+	if itemLen != 0 {
+		t.Error("Just stat, it should 0 items")
+	}
+
+	cc.Set("a", 1)
+	cc.Set("b", "b")
+
+	debugLog(t, "cache contains ", cc.ItemCount())
+	if cc.ItemCount() != 2 {
+		t.Error("items should be contain")
+	}
+
+	<-time.After(time.Minute)
+
+	debugLog(t, "cache contains ", cc.ItemCount())
+	if cc.ItemCount() != 0 {
+		t.Error("items should not be contain any item")
+	}
+
+	a, found := cc.Get("a")
+	if found {
+		t.Error("should not be found a")
+	}
+	if a != nil {
+		t.Error("a should not have the value")
+	}
+
+	b, found := cc.Get("b")
+	if found {
+		t.Error("should not be found b")
+	}
+	if b != nil {
+		t.Error("b should not have the value")
 	}
 }
 
