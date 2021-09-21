@@ -3,6 +3,7 @@ package main
 import (
 	"reflect"
 	"fmt"
+	"errors"
 )
 
 var Input = []string {"name1", "na", "rsa", "name4", "wt"}
@@ -19,6 +20,9 @@ func main() {
 	for _, v := range res {
 		fmt.Println(v)
 	}
+
+	fmt.Println("TestCreateNewPtr --> pass")
+	TestCreateNewPtr()
 }
 
 func Ref(model interface{}) []interface{} {
@@ -44,4 +48,39 @@ func Ref(model interface{}) []interface{} {
 	}
 
 	return result
+}
+
+func CreateNewPtr(model interface{}) (interface{}, error) {
+	modelType := reflect.TypeOf(model)
+	if modelType.Kind() == reflect.Ptr {
+		modelType = modelType.Elem()
+	}
+	if modelType.Kind() != reflect.Struct {
+		return nil, errors.New("query model type is not struct")
+	}
+
+	object := reflect.New(modelType).Elem()
+	return object.Addr().Interface(), nil
+}
+
+// TestCreateNewPtr
+func TestCreateNewPtr() {
+	type Object struct {
+		Name string
+		ID int
+	}
+
+	p, err := CreateNewPtr(&Object{})
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	ptr, ok := p.(*Object)
+	if !ok {
+		fmt.Println("not ok")
+		return
+	}
+	ptr.Name = "ptr"
+	ptr.ID = -1
+	fmt.Println(ptr)
 }
