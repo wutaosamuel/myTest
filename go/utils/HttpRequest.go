@@ -40,10 +40,10 @@ func Request(method, url string, params map[string]string,
 
 	res, err := client.Do(req)
 	if err != nil {
-		res.Body.Close()
-		return res, Errs("Client Call Request Error: ", err)
+		return nil, Errs("Client Call Request Error: ", err)
 	}
 	defer res.Body.Close()
+
 	if res.StatusCode != 200 && weberrors != nil {
 		decoder := json.NewDecoder(res.Body)
 		if err := decoder.Decode(weberrors); err != nil {

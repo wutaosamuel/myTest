@@ -7,3 +7,19 @@ var Auth = map[string]string{
 func SetAuth(key, value string) {
 	Auth[key] = value
 }
+
+var NewO = map[string]interface{} {
+	"object": NewObject(),
+}
+
+type Object struct {
+	Name string
+	ID int
+}
+
+func NewObject() *Object {
+	return &Object{
+		Name: "",
+		ID: -1,
+	}
+}
