@@ -1,0 +1,10 @@
+// BleMessage.proto
+syntax = "proto3";
+import "nanopb.proto";
+
+message BleMessage {
+  int32 op = 1;
+  string mac_address = 2 [(nanopb).max_size=30];
+  string wifiSsid = 3 [(nanopb).max_size=80];
+  string password = 4 [(nanopb).max_size=80];
+}

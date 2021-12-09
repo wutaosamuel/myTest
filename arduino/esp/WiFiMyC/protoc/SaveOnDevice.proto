@@ -1,0 +1,10 @@
+// saveOnDevice.proto
+syntax = "proto3";
+
+package SaveOnDevice;
+
+message SaveOnClient {
+  // server mac address 
+  string device_id_mac = 1;
+  string ip_address = 2;
+}

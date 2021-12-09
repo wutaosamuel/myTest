@@ -1,0 +1,24 @@
+// messageWiFi.proto
+syntax = "proto3";
+
+package MessageWiFi;
+
+// check device whether on server list
+// server respond
+message check_List {
+  int32 request = 1;
+  string device_id_mac = 2;
+}
+
+// send data to server
+// server respond
+message send_data {
+  int32 request = 1;
+  int32 value = 2;
+}
+
+// respond by server
+message server_respond {
+  int32 respond = 1;
+  string message = 2;
+}

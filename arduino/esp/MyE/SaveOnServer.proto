@@ -1,0 +1,9 @@
+// saveOnServer.proto
+syntax = "proto3";
+
+message SaveOnServer {
+  // server mac address 
+  string device_id_mac = 1;
+  int32 group_id = 2;
+  int32 device_type = 3;
+}
