@@ -4,6 +4,7 @@
 
 #include <string>
 #include <vector>
+#include <iostream>
 
 #define SIGNLEFT "{{"
 #define SIGNRIGHT "}}"
@@ -36,8 +37,10 @@ class StringTemplate {
   inline void SetSign(string left, string right);
   vector<SignPair*> FindPairs();
   string ToString();
+  string ToBigString();
 
  private:
   SignPair* findPair(size_t);
+  SignPair* findP(string, size_t);
 };
 #endif

@@ -48,18 +48,38 @@ string StringTemplate::ToString() {
   return result;
 }
 
+string StringTemplate::ToBigString() {
+  // check the No of template found is the same as the Variables
+  if (this->FindPairs().size() != this->Variables.size()) return "";
+
+  // replace template string
+  string result = this->Template;
+  size_t pos = 0;
+  for (int i=0; i<this->Variables.size(); i++) {
+    SignPair *pair = this->findP(result, pos);
+    if (pair == nullptr) return result;
+    result.replace(pair->Pos, pair->Length, this->Variables[i]);
+    pos = pair->Pos;
+  }
+  return result;
+}
+
 SignPair* StringTemplate::findPair(size_t pos) {
-  size_t found = this->Template.find(this->signL, pos);
+  return this->findP(this->Template, pos);
+}
+
+SignPair* StringTemplate::findP(string text, size_t pos) {
+  size_t found = text.find(this->signL, pos);
   if (found == string::npos) return nullptr;
 
   size_t nextFound =
-      this->Template.find(this->signL, found + this->signL.length());
+      text.find(this->signL, found + this->signL.length());
   size_t pairFound =
-      this->Template.find(this->signR, found + this->signR.length());
+      text.find(this->signR, found + this->signR.length());
   if (pairFound == string::npos) return nullptr;
   if (nextFound != string::npos) {
     if (pairFound > nextFound) {
-      return this->findPair(found + this->signL.length());
+      return this->findP(text, found + this->signL.length());
     }
   }
 
