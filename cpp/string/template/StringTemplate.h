@@ -2,9 +2,9 @@
 #ifndef STRINGTEMPLATE_H
 #define STRINGTEMPLATE_H
 
+#include <iostream>
 #include <string>
 #include <vector>
-#include <iostream>
 
 #define SIGNLEFT "{{"
 #define SIGNRIGHT "}}"
@@ -23,17 +23,16 @@ class SignPair {
 
 class StringTemplate {
  public:
-  string Template;
-  vector<string> Variables;
+  const string& Template;
+  const vector<string>& Variables;
 
  private:
   string signL = SIGNLEFT;
   string signR = SIGNRIGHT;
 
  public:
-  StringTemplate(string templt, vector<string> variables);
+  StringTemplate(const string& templt, const vector<string>& variables);
   ~StringTemplate();
-  inline void Set(string templt, vector<string> variables);
   inline void SetSign(string left, string right);
   vector<SignPair*> FindPairs();
   string ToString();

@@ -1,16 +1,11 @@
 // StringTemplate.cpp
 #include "StringTemplate.h"
 
-StringTemplate::StringTemplate(string templt, vector<string> variables) {
-  this->Set(templt, variables);
-}
+StringTemplate::StringTemplate(const string& templt,
+                               const vector<string>& variables)
+    : Template(templt), Variables(variables) {}
 
 StringTemplate::~StringTemplate() {}
-
-inline void StringTemplate::Set(string templt, vector<string> variables) {
-  this->Template = templt;
-  this->Variables = variables;
-}
 
 inline void StringTemplate::SetSign(string left, string right) {
   this->signL = left != "" ? left : SIGNLEFT;
@@ -55,8 +50,8 @@ string StringTemplate::ToBigString() {
   // replace template string
   string result = this->Template;
   size_t pos = 0;
-  for (int i=0; i<this->Variables.size(); i++) {
-    SignPair *pair = this->findP(result, pos);
+  for (int i = 0; i < this->Variables.size(); i++) {
+    SignPair* pair = this->findP(result, pos);
     if (pair == nullptr) return result;
     result.replace(pair->Pos, pair->Length, this->Variables[i]);
     pos = pair->Pos;
@@ -72,10 +67,8 @@ SignPair* StringTemplate::findP(string text, size_t pos) {
   size_t found = text.find(this->signL, pos);
   if (found == string::npos) return nullptr;
 
-  size_t nextFound =
-      text.find(this->signL, found + this->signL.length());
-  size_t pairFound =
-      text.find(this->signR, found + this->signR.length());
+  size_t nextFound = text.find(this->signL, found + this->signL.length());
+  size_t pairFound = text.find(this->signR, found + this->signR.length());
   if (pairFound == string::npos) return nullptr;
   if (nextFound != string::npos) {
     if (pairFound > nextFound) {
