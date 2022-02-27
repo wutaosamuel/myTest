@@ -3,11 +3,11 @@
 
 using namespace std;
 
-inline void toLower(string& s) {
+void toLower(string& s) {
   for (int i = 0; i < s.length(); i++) s[i] = static_cast<char>(tolower(s[i]));
 }
 
-inline void toUpper(string& s) {
+void toUpper(string& s) {
   for (int i = 0; i < s.length(); i++) s[i] = static_cast<char>(toupper(s[i]));
 }
 
