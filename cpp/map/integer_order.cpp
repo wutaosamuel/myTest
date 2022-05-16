@@ -5,9 +5,9 @@ using namespace std;
 
 int main() {
 	std::map<int, int> m;
-	int array[] = {2, 4, 1, 8, 5};
+	int array[] = {2, 4, 1, 8, 5, -1, -4, -9};
 
-	for(int i=0; i<5; i++) {
+	for(int i=0; i<8; i++) {
 		if (m.find(array[i]) != m.end()) {
 			std::cout << "already exist" << std::endl;
 			return 0;
