@@ -1,9 +1,9 @@
 #include <stdio.h>
 
 #define CHAR_STRING \
-  "hello "           \
+  "hello "          \
   "world"           \
-  "!"
+  "!\""
 
 int main() {
   char str[] = {CHAR_STRING};
