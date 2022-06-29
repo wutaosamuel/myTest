@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
+
+	"../lib"
 )
 
 func main() {
-	a := Add(1, 4)
+	a := lib.Add(1, 4)
 	fmt.Println(a)
 }

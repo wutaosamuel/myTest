@@ -1,6 +1,6 @@
-package lib
+package main
 
-// #include "./add.c"
+// #include "../add.c"
 import "C"
 
 func Add(a, b int) int {
