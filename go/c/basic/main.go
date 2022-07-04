@@ -9,4 +9,6 @@ import (
 func main() {
 	a := lib.Add(1, 4)
 	fmt.Println(a)
+	fmt.Println()
+	lib.SetString()
 }

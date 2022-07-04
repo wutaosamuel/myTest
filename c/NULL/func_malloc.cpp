@@ -9,6 +9,8 @@ typedef struct {
 } Object;
 
 Object* NewObject();
+void FreeObject(Object* obj);
+void FreeObjectPP(Object** obj);
 void SetObject(Object*, const char*, int, int);
 void NewObjectFunc(Object*);
 
@@ -29,6 +31,17 @@ int main() {
   NewObjectFunc(o);
   printf("after object point: %p\n", o);
 
+
+  printf("\n");
+  printf("before object free: %p\n", obj);
+  FreeObject(obj);
+  printf("after object free: %p\n", obj);
+  printf("\n");
+  o = NewObject();
+  printf("before object freePP: %p\n", o);
+  FreeObjectPP(&o);
+  printf("after object freePP: %p\n", o);
+
   return 0;
 }
 
@@ -37,6 +50,19 @@ Object* NewObject() {
   SetObject(object, "object 0", 8, 0);
 
   return object;
+}
+
+void FreeObject(Object* obj) {
+  if (!obj) return;
+  free(obj);
+  obj = NULL;
+}
+
+void FreeObjectPP(Object** obj) {
+  if (!obj) return;
+  if (!*obj) return;
+  free(*obj);
+  *obj = NULL;
 }
 
 void SetObject(Object* object, const char* name, int size, int id) {
