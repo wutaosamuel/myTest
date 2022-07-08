@@ -1,6 +1,6 @@
 #include "debug_printf.h"
 
-#include <iostream>
+#include <stdio.h>
 
 void DBG_PRINTF_test();
 
