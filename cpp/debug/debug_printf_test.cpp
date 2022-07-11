@@ -10,6 +10,7 @@ int main() {
 }
 
 void DBG_PRINTF_test() {
+  DBG_PRINTF("start to test debug printf\n");
   DBG_PRINTF("This is a test func %d\n", 11);
   return;
 }
