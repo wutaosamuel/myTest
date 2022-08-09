@@ -1,6 +1,8 @@
 package lib
 
-// #include "./add.c"
+/*
+#include "./add.h"
+*/
 import "C"
 
 func Add(a, b int) int {
