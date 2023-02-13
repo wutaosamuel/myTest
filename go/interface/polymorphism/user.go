@@ -3,13 +3,15 @@ package main
 import (
 	"fmt"
 
-	_ "./protocol"
+	"./protocol"
 )
 
 type User struct {
 	Name string
 	Age  int
 }
+
+var _ protocol.Protocol = (*User)(nil)
 
 func NewUser() *User {
 	return &User{
