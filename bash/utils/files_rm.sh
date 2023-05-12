@@ -12,10 +12,17 @@ function CmdExist() {
 }
 
 function RemoveFiles() {
+	# chech the number of files larger than 0
+	if [[ $# -eq 0 ]] ; then
+		echo "no files"
+		return
+	fi
+
+  # remove all files
 	for file in "$@"
 	do
 		# Check file if exist
-		if ! test -e $file ; then
+		if [[ ! -e $file ]] ; then
 			echo "$file is not exist"
 			break
 		fi
@@ -33,11 +40,14 @@ function files_rm() {
 		file1.tmp
 		file2.tmp
 	)
+	local emptyFiles=()
 	# Check rm command exist
 	CmdExist rm
 
-	# rm empty files
-	RemoveFiles ${files[*]}
+	echo "Start remove empty file array"
+	#rm empty files
+	RemoveFiles ${emptyFiles[*]}
+	echo "done, must output (no files)"
 
 	echo "Start remove"
 	# touch files
