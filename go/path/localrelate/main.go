@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"path/filepath"
 	"fmt"
 )
@@ -14,4 +15,7 @@ func main() {
 		return
 	}
 	fmt.Println(abs)
+	fmt.Println()
+	pwd,_ := os.Getwd()
+	fmt.Println(pwd)
 }
