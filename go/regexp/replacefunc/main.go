@@ -11,7 +11,9 @@ func main() {
 	// replace
 
 	reg := regexp.MustCompile(`{{ ([^{}]*) }}`)
-	reg.ReplaceAllStringFunc("{{city}}, {{ state }} {{ zip }}", replace)
+	str := reg.ReplaceAllStringFunc("{{city}}, {{ state }} {{ zip }}", replace)
+	fmt.Println()
+	fmt.Println(str)
 }
 
 func replace(str string) string {
