@@ -8,9 +8,9 @@ import (
 )
 
 func main() {
-	c, err := net.Dial("unix", "/c/d/tmp/go.socket")
+	c, err := net.Dial("unix", "C:/d/tmp/go.socket")
 	if err != nil {
-		println(err)
+		println(err.Error())
 		os.Exit(1)
 	}
 	defer c.Close()
@@ -25,7 +25,7 @@ func sendWithResponse(c net.Conn) {
 	// send message
 	_, err := c.Write([]byte("Hello from client!"))
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println(err.Error())
 		return
 	}
 	defer c.Close()
@@ -34,7 +34,7 @@ func sendWithResponse(c net.Conn) {
 	buf := make([]byte, 1024)
 	bufLen, err := c.Read(buf)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println(err.Error())
 		return
 	}
 

@@ -9,9 +9,9 @@ import (
 
 func main() {
 	// local socket listen
-	l, err := net.Listen("unix", "/c/d/tmp/http.socket")
+	l, err := net.Listen("unix", "c:/d/tmp/http.socket")
 	if err != nil {
-		println(err)
+		println(err.Error())
 		os.Exit(1)
 	}
 	defer l.Close()

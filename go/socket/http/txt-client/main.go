@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	socketPath := "/c/d/tmp/http.socket"
+	socketPath := "c:/d/tmp/http.socket"
 	client := http.Client{
 		Transport: &http.Transport{
 			Dial: func(_, _ string) (net.Conn, error) {
@@ -21,7 +21,7 @@ func main() {
 	//res, err := client.Get("unix://http.socket")
 	res, err := client.Get("http://http.socket/hello")
 	if err != nil {
-		println(err)
+		println(err.Error())
 		os.Exit(1)
 	}
 	body, err := io.ReadAll(res.Body)
@@ -31,7 +31,7 @@ func main() {
 		os.Exit(1)
 	}
 	if err != nil {
-		println(err)
+		println(err.Error())
 		os.Exit(1)
 	}
 

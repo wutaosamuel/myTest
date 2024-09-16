@@ -7,9 +7,9 @@ import (
 )
 
 func main() {
-	l, err := net.Listen("unix", "/c/d/tmp/go.socket")
+	l, err := net.Listen("unix", "c:/d/tmp/go.socket")
 	if err != nil {
-		println(err)
+		println(err.Error())
 		os.Exit(1)
 	}
 	defer l.Close()
@@ -17,7 +17,7 @@ func main() {
 	for {
 		conn, err := l.Accept()
 		if err != nil {
-			println(err)
+			println(err.Error())
 			os.Exit(1)
 		}
 
@@ -30,7 +30,7 @@ func echoServer(c net.Conn) {
 
 	bufLen, err := c.Read(buf)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println(err.Error())
 		return
 	}
 	defer c.Close()
@@ -44,7 +44,7 @@ func echoServer(c net.Conn) {
 	// send message
 	_, err = c.Write([]byte("receive ok"))
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println(err.Error())
 		return
 	}
 }
