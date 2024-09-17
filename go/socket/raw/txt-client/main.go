@@ -28,7 +28,6 @@ func sendWithResponse(c net.Conn) {
 		fmt.Println(err.Error())
 		return
 	}
-	defer c.Close()
 
 	// receive message
 	buf := make([]byte, 1024)
@@ -38,8 +37,8 @@ func sendWithResponse(c net.Conn) {
 		return
 	}
 
-	data := buf[0:bufLen]
+	data := buf[:bufLen]
 	fmt.Println("receive response:")
-	fmt.Println(data)
+	fmt.Println(string(data))
 	fmt.Println()
 }

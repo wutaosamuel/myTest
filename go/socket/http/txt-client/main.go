@@ -6,34 +6,41 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"time"
 )
 
 func main() {
-	socketPath := "c:/d/tmp/http.socket"
+	socketFile := "c:/d/tmp/http.socket"
+
 	client := http.Client{
 		Transport: &http.Transport{
 			Dial: func(_, _ string) (net.Conn, error) {
-				return net.Dial("unix", socketPath)
+				return net.Dial("unix", socketFile)
 			},
 		},
 	}
 
-	//res, err := client.Get("unix://http.socket")
-	res, err := client.Get("http://http.socket/hello")
-	if err != nil {
-		println(err.Error())
-		os.Exit(1)
-	}
-	body, err := io.ReadAll(res.Body)
-	res.Body.Close()
-	if res.StatusCode > 299 {
-		print("Response failed with status code: %d and \nbody: %s\n", res.StatusCode, body)
-		os.Exit(1)
-	}
-	if err != nil {
-		println(err.Error())
-		os.Exit(1)
-	}
+	for {
+		// res, err := client.Get("unix://http.socket/hello") // not work
+		res, err := client.Get("http://http.socket/hello")
+		if err != nil {
+			println(err.Error())
+			os.Exit(1)
+		}
 
-	fmt.Println(body)
+		body, err := io.ReadAll(res.Body)
+		res.Body.Close()
+		if res.StatusCode > 299 {
+			print(fmt.Sprintf("Response failed with status code: %d and \nbody: %s\n", res.StatusCode, body))
+			os.Exit(1)
+		}
+		if err != nil {
+			println(err.Error())
+			os.Exit(1)
+		}
+
+		fmt.Println(string(body))
+
+		time.Sleep(5 * time.Second)
+	}
 }
