@@ -14,21 +14,20 @@ void printLocalAgain() {
 void printLocalAdd() {
   static int local = 10;
 
-  printf("static local value = %d\n", local++);
+  printf("static local without assign value: %d\n", local++);
 }
 
 void printAdd() {
   static int add;
   add = 10;
 
-  printf("static local value = %d\n", add++);
+  printf("static local with assign value: %d\n", add++);
 }
 
 void printAddMore() {
   static int add = 5;
-  add = 10;
 
-  printf("static local value = %d\n", add++);
+  printf("static local another value without assign value: %d\n", add++);
 }
 
 int main() {
